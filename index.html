@@ -1,6 +1,8 @@
 <!DOCTYPE html><html>
 <head>
   <title>ISO - Social Network</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
     body {
       background-color: #121212;
@@ -45,34 +47,6 @@
       color: #00cc77;
       cursor: pointer;
     }
-    #menuBtn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      font-size: 30px;
-      cursor: pointer;
-      display: none;
-    }
-    #sideMenu {
-      position: fixed;
-      top: 0;
-      left: -60%;
-      width: 60%;
-      height: 100%;
-      background-color: #1e1e1e;
-      box-shadow: 2px 0 10px #00ff99;
-      transition: left 0.3s ease;
-      padding-top: 80px;
-      text-align: center;
-      z-index: 999;
-    }
-    .menuBox a {
-      display: block;
-      color: #00ff99;
-      margin: 15px 0;
-      font-size: 18px;
-      cursor: pointer;
-    }
     #bottomMenu {
       position: fixed;
       bottom: 0;
@@ -94,24 +68,10 @@
       display: block;
       font-size: 24px;
     }
-    #profileView, #searchBoardView, #feedBoardView {
-      display: none;
-    }
-    #randomUsers p {
-      margin: 5px 0;
-    }
   </style>
 </head>
 <body>
-  <div id="menuBtn" onclick="toggleMenu()">☰</div>
-  <div id="sideMenu">
-    <div onclick="toggleMenu()" style="position:absolute; top:20px; right:20px; font-size:22px;">❌</div>
-    <div class="menuBox">
-      <a onclick="logout()">Logout</a>
-      <a onclick="showSignin()">Login with another account</a>
-      <a onclick="showSignup()">Signup new account</a>
-    </div>
-  </div>  <div class="box" id="signupBox">
+  <div class="box" id="signupBox">
     <h1>ISO</h1>
     <h2>Sign Up</h2>
     <input id="sName" placeholder="Full Name"><br>
@@ -120,206 +80,160 @@
     <input id="sPassword" type="password" placeholder="Password"><br>
     <button onclick="signup()">Sign Up</button><br>
     <small>Already have an account? <a onclick="showSignin()">Sign In</a></small>
-  </div>  <div class="box hidden" id="signinBox">
+  </div>
+  <div class="box hidden" id="signinBox">
     <h2>Sign In</h2>
     <input id="lEmail" type="email" placeholder="Email"><br>
     <input id="lPassword" type="password" placeholder="Password"><br>
     <button onclick="signin()">Sign In</button><br>
     <small>Forgot password? <a onclick="showForgot()">Click here</a></small><br>
     <small>New here? <a onclick="showSignup()">Sign Up</a></small>
-  </div>  <div class="box hidden" id="forgotBox">
+  </div>
+  <div class="box hidden" id="forgotBox">
     <h2>Forgot Password</h2>
-    <input id="fUserId" placeholder="User ID"><br>
     <input id="fEmail" type="email" placeholder="Email"><br>
     <input id="fNewPassword" type="password" placeholder="New Password"><br>
     <button onclick="resetPassword()">Reset</button><br>
     <small><a onclick="showSignin()">Back to Sign In</a></small>
-  </div>  <div class="box hidden" id="profileView">
+  </div>
+  <div class="box hidden" id="profileBox">
     <h2>👤 Profile</h2>
-    <p><strong>ID:</strong> <span id="pId"></span></p>
     <p><strong>Name:</strong> <span id="pName"></span></p>
     <p><strong>Username:</strong> <span id="pUsername"></span></p>
     <p><strong>Email:</strong> <span id="pEmail"></span></p>
-    <p><strong>Password:</strong> <span id="pPassword"></span></p>
-  </div>  <div class="box hidden" id="feedBoardView">
+  </div>
+  <div class="box hidden" id="feedBox">
     <h2>🌐 ISO Feed</h2>
     <textarea id="newPost" placeholder="What's on your mind?"></textarea><br>
     <button onclick="createPost()">Post</button>
     <div id="postList" style="text-align: left; margin-top: 20px;"></div>
-  </div>  <div class="box hidden" id="searchBoardView">
-    <h2>🔍 Search User</h2>
-    <input id="searchInput" placeholder="Enter Username or User ID"><br>
-    <button onclick="searchUser()">Search</button>
-    <div id="searchResult" style="margin-top: 20px; text-align: left;"></div>
-    <hr>
-    <h3>Random Users</h3>
-    <div id="randomUsers" style="text-align: left;"></div>
-  </div>  <div id="bottomMenu">
-    <div onclick="switchToProfile()">
+  </div>
+  <div id="bottomMenu">
+    <div onclick="showProfile()">
       <span>👤</span>Profile
     </div>
-    <div onclick="switchToBoard()">
-      <span>🌐</span>ISO Feed
+    <div onclick="showFeed()">
+      <span>🌐</span>Feed
     </div>
-    <div onclick="switchToSearch()">
-      <span>🔍</span>Search
-    </div>
-  </div>  <script>
-    const boxes = {
-      profile: document.getElementById("profileView"),
-      feed: document.getElementById("feedBoardView"),
-      search: document.getElementById("searchBoardView")
+  </div>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhUXRHiq68Dvg2gPoWD9imISKWwhqe6R4",
+      authDomain: "iso-my-web.firebaseapp.com",
+      databaseURL: "https://iso-my-web-default-rtdb.firebaseio.com",
+      projectId: "iso-my-web",
+      storageBucket: "iso-my-web.appspot.com",
+      messagingSenderId: "767856860761",
+      appId: "1:767856860761:web:e56b155e51596f1fb9db48",
+      measurementId: "G-RSE767NHDR"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();let currentUser = null;
 
-    function toggleMenu() {
-      const menu = document.getElementById('sideMenu');
-      menu.style.left = menu.style.left === '0px' ? '-60%' : '0px';
+function saveUsers(users) {
+  localStorage.setItem("users", JSON.stringify(users));
+}
+
+function getUsers() {
+  return JSON.parse(localStorage.getItem("users")) || [];
+}
+
+function signup() {
+  const name = sName.value.trim(), username = sUsername.value.trim(), email = sEmail.value.trim(), password = sPassword.value;
+  if (!name || !username || !email || !password) return alert("All fields required!");
+  let users = getUsers();
+  if (users.some(u => u.email === email)) return alert("Email already exists!");
+  const user = { name, username, email, password };
+  users.push(user);
+  saveUsers(users);
+  localStorage.setItem("loggedInUser", JSON.stringify(user));
+  currentUser = user;
+  showProfile();
+}
+
+function signin() {
+  const email = lEmail.value.trim(), password = lPassword.value;
+  const user = getUsers().find(u => u.email === email && u.password === password);
+  if (!user) return alert("Invalid credentials!");
+  localStorage.setItem("loggedInUser", JSON.stringify(user));
+  currentUser = user;
+  showProfile();
+}
+
+function resetPassword() {
+  const email = fEmail.value.trim(), pass = fNewPassword.value;
+  let users = getUsers();
+  let idx = users.findIndex(u => u.email === email);
+  if (idx === -1) return alert("No match found!");
+  users[idx].password = pass;
+  saveUsers(users);
+  alert("Password updated");
+  showSignin();
+}
+
+function createPost() {
+  const msg = document.getElementById("newPost").value.trim();
+  if (!msg || !currentUser) return;
+  const postRef = db.ref("feed").push();
+  postRef.set({ user: currentUser.username, message: msg, time: new Date().toLocaleString() });
+  document.getElementById("newPost").value = "";
+}
+
+function loadFeed() {
+  db.ref("feed").on("value", snap => {
+    const posts = snap.val();
+    const list = document.getElementById("postList");
+    list.innerHTML = "";
+    if (posts) {
+      Object.values(posts).reverse().forEach(p => {
+        list.innerHTML += `<p><strong>@${p.user}</strong><br>${p.message}<br><small style='color:gray;'>${p.time}</small></p><hr>`;
+      });
     }
+  });
+}
 
-    function getUsers() {
-      return JSON.parse(localStorage.getItem('users')) || [];
-    }
+function hideAll() {
+  document.querySelectorAll(".box").forEach(b => b.classList.add("hidden"));
+}
 
-    function saveUsers(users) {
-      localStorage.setItem('users', JSON.stringify(users));
-    }
+function showSignup() {
+  hideAll();
+  signupBox.classList.remove("hidden");
+}
 
-    function generateUserId() {
-      return 'UID' + Math.floor(Math.random() * 1000000);
-    }
+function showSignin() {
+  hideAll();
+  signinBox.classList.remove("hidden");
+}
 
-    function signup() {
-      const name = sName.value.trim(), username = sUsername.value.trim(), email = sEmail.value.trim(), password = sPassword.value;
-      if (!name || !username || !email || !password) return alert("All fields required!");
-      if (!email.includes('@')) return alert("Invalid email!");
-      let users = getUsers();
-      if (users.some(u => u.email === email)) return alert("Email already exists!");
-      const user = { id: generateUserId(), name, username, email, password };
-      users.push(user);
-      saveUsers(users);
-      localStorage.setItem("loggedInUser", JSON.stringify(user));
-      showProfile(user);
-    }
+function showForgot() {
+  hideAll();
+  forgotBox.classList.remove("hidden");
+}
 
-    function signin() {
-      const email = lEmail.value.trim(), password = lPassword.value;
-      const user = getUsers().find(u => u.email === email && u.password === password);
-      if (!user) return alert("Invalid credentials!");
-      localStorage.setItem("loggedInUser", JSON.stringify(user));
-      showProfile(user);
-    }
+function showProfile() {
+  hideAll();
+  profileBox.classList.remove("hidden");
+  document.getElementById("bottomMenu").style.display = "flex";
+  if (!currentUser) currentUser = JSON.parse(localStorage.getItem("loggedInUser"));
+  pName.textContent = currentUser.name;
+  pUsername.textContent = currentUser.username;
+  pEmail.textContent = currentUser.email;
+}
 
-    function resetPassword() {
-      const id = fUserId.value.trim(), email = fEmail.value.trim(), pass = fNewPassword.value;
-      let users = getUsers();
-      let idx = users.findIndex(u => u.id === id && u.email === email);
-      if (idx === -1) return alert("No match found!");
-      users[idx].password = pass;
-      saveUsers(users);
-      alert("Password updated");
-      showSignin();
-    }
+function showFeed() {
+  hideAll();
+  feedBox.classList.remove("hidden");
+  document.getElementById("bottomMenu").style.display = "flex";
+  loadFeed();
+}
 
-    function showSignup() {
-      hideAll();
-      signupBox.classList.remove("hidden");
-    }
+const storedUser = JSON.parse(localStorage.getItem("loggedInUser"));
+if (storedUser) {
+  currentUser = storedUser;
+  showProfile();
+}
 
-    function showSignin() {
-      hideAll();
-      signinBox.classList.remove("hidden");
-    }
-
-    function showForgot() {
-      hideAll();
-      forgotBox.classList.remove("hidden");
-    }
-
-    function showProfile(user) {
-      hideAll();
-      boxes.profile.style.display = "block";
-      document.getElementById("bottomMenu").style.display = "flex";
-      document.getElementById("menuBtn").style.display = "block";
-      pId.textContent = user.id;
-      pName.textContent = user.name;
-      pUsername.textContent = user.username;
-      pEmail.textContent = user.email;
-      pPassword.textContent = user.password;
-    }
-
-    function logout() {
-      localStorage.removeItem("loggedInUser");
-      location.reload();
-    }
-
-    function hideAll() {
-      document.querySelectorAll(".box").forEach(b => b.classList.add("hidden"));
-      document.getElementById("bottomMenu").style.display = "none";
-      document.getElementById("menuBtn").style.display = "none";
-      document.getElementById("sideMenu").style.left = "-60%";
-      Object.values(boxes).forEach(box => box.style.display = "none");
-    }
-
-    function switchToProfile() {
-      hideAll();
-      boxes.profile.style.display = "block";
-      document.getElementById("bottomMenu").style.display = "flex";
-      document.getElementById("menuBtn").style.display = "block";
-    }
-
-    function switchToBoard() {
-      hideAll();
-      boxes.feed.style.display = "block";
-      document.getElementById("bottomMenu").style.display = "flex";
-      loadFeed();
-    }
-
-    function switchToSearch() {
-      hideAll();
-      boxes.search.style.display = "block";
-      document.getElementById("bottomMenu").style.display = "flex";
-      document.getElementById("searchInput").value = "";
-      document.getElementById("searchResult").innerHTML = "";
-      loadRandomUsers();
-    }
-
-    function createPost() {
-      const content = document.getElementById("newPost").value.trim();
-      if (!content) return;
-      const user = JSON.parse(localStorage.getItem("loggedInUser"));
-      const posts = JSON.parse(localStorage.getItem("feedPosts")) || [];
-      posts.unshift({ user: user.username, content, time: new Date().toLocaleString() });
-      localStorage.setItem("feedPosts", JSON.stringify(posts));
-      document.getElementById("newPost").value = "";
-      loadFeed();
-    }
-
-    function loadFeed() {
-      const posts = JSON.parse(localStorage.getItem("feedPosts")) || [];
-      document.getElementById("postList").innerHTML = posts.map(p => `<p><strong>@${p.user}</strong><br>${p.content}<br><small style='color:gray;'>${p.time}</small></p><hr>`).join('');
-    }
-
-    function searchUser() {
-      const query = document.getElementById("searchInput").value.trim().toLowerCase();
-      const users = getUsers();
-      const match = users.find(u => u.username.toLowerCase() === query || u.id.toLowerCase() === query);
-      const resultBox = document.getElementById("searchResult");
-      if (!match) {
-        resultBox.innerHTML = `<p style="color:red;">❌ No user found</p>`;
-      } else {
-        resultBox.innerHTML = `<p><strong>Name:</strong> ${match.name}</p><p><strong>Username:</strong> ${match.username}</p>`;
-      }
-    }
-
-    function loadRandomUsers() {
-      const users = getUsers();
-      const shuffled = users.sort(() => 0.5 - Math.random());
-      const selected = shuffled.slice(0, 10);
-      const container = document.getElementById("randomUsers");
-      container.innerHTML = selected.map(u => `<p>👤 <strong>${u.name}</strong> (@${u.username})</p>`).join('');
-    }
-
-    const currentUser = JSON.parse(localStorage.getItem("loggedInUser"));
-    if (currentUser) showProfile(currentUser);
-  </script></body>
-      </html>
+  </script>
+</body>
+                                                                           </html>
