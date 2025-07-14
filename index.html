@@ -1,24 +1,363 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html>
 <head>
-  <meta charset="UTF-8">
-  <title>Hello DAAKU</title>
+  <title>ISO-GRAM</title>
   <style>
     body {
-      background-color: #f4f4f4;
+      background-color: #121212;
+      color: #00ff99;
       font-family: Arial, sans-serif;
+      margin: 0;
+      padding-top: 60px;
       text-align: center;
-      padding-top: 100px;
     }
-    .daaku {
-      font-size: 72px;
-      font-weight: bold;
-      color: #d00000;
+    h1, h2 {
+      color: #00cc77;
+    }
+    .box {
+      background-color: #1e1e1e;
+      padding: 30px;
+      border-radius: 10px;
+      display: inline-block;
+      box-shadow: 0 0 10px #00ff99;
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 250px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background-color: #00ff99;
+      color: #121212;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #00cc77;
+    }
+    .hidden { display: none; }
+    small a {
+      color: #00cc77;
+      cursor: pointer;
+    }
+    #menuBtn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 30px;
+      cursor: pointer;
+      display: none;
+    }
+    #sideMenu {
+      position: fixed;
+      top: 0;
+      left: -60%;
+      width: 60%;
+      height: 100%;
+      background-color: #1e1e1e;
+      box-shadow: 2px 0 10px #00ff99;
+      transition: left 0.3s ease;
+      padding-top: 80px;
+      text-align: center;
+      z-index: 999;
+    }
+    .menuBox a {
+      display: block;
+      color: #00ff99;
+      margin: 15px 0;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    #bottomMenu {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #1e1e1e;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      border-top: 1px solid #00ff99;
+      display: none;
+    }
+    #bottomMenu div {
+      font-size: 24px;
+      cursor: pointer;
+      color: #00ff99;
+    }
+    #globalBoardView, #profileView, #searchBoardView, #notificationBoardView, #chatBoardView {
+      display: none;
+    }
+    #randomUsers p {
+      margin: 5px 0;
     }
   </style>
 </head>
 <body>
-  <p>hello</p>
-  <div class="daaku">DAAKU</div>
-</body>
-</html>
+  <div id="menuBtn" onclick="toggleMenu()">☰</div>  <div id="sideMenu">
+    <div onclick="toggleMenu()" style="position:absolute; top:20px; right:20px; font-size:22px;">❌</div>
+    <div class="menuBox">
+      <a onclick="logout()">Logout</a>
+      <a onclick="showSignin()">Login with another account</a>
+      <a onclick="showSignup()">Signup new account</a>
+    </div>
+  </div>  <!-- Signup -->  <div class="box" id="signupBox">
+    <h1>lingova.xyz</h1>
+    <h2>Sign Up</h2>
+    <input id="sName" placeholder="Full Name"><br>
+    <input id="sUsername" placeholder="Username"><br>
+    <input id="sEmail" type="email" placeholder="Email"><br>
+    <input id="sPassword" type="password" placeholder="Password"><br>
+    <button onclick="signup()">Sign Up</button><br>
+    <small>Already have an account? <a onclick="showSignin()">Sign In</a></small>
+  </div>  <!-- Signin -->  <div class="box hidden" id="signinBox">
+    <h2>Sign In</h2>
+    <input id="lEmail" type="email" placeholder="Email"><br>
+    <input id="lPassword" type="password" placeholder="Password"><br>
+    <button onclick="signin()">Sign In</button><br>
+    <small>Forgot password? <a onclick="showForgot()">Click here</a></small><br>
+    <small>New here? <a onclick="showSignup()">Sign Up</a></small>
+  </div>  <!-- Forgot Password -->  <div class="box hidden" id="forgotBox">
+    <h2>Forgot Password</h2>
+    <input id="fUserId" placeholder="User ID"><br>
+    <input id="fEmail" type="email" placeholder="Email"><br>
+    <input id="fNewPassword" type="password" placeholder="New Password"><br>
+    <button onclick="resetPassword()">Reset</button><br>
+    <small><a onclick="showSignin()">Back to Sign In</a></small>
+  </div>  <!-- Profile View -->  <div class="box hidden" id="profileView">
+    <h2>👤 Profile</h2>
+    <p><strong>ID:</strong> <span id="pId"></span></p>
+    <p><strong>Name:</strong> <span id="pName"></span></p>
+    <p><strong>Username:</strong> <span id="pUsername"></span></p>
+    <p><strong>Email:</strong> <span id="pEmail"></span></p>
+    <p><strong>Password:</strong> <span id="pPassword"></span></p>
+  </div>  <!-- Global Board -->  <div class="box hidden" id="globalBoardView">
+    <h2>🌐 Global Board</h2>
+    <div id="globalBoard" style="background:#111; max-height:200px; overflow-y:auto; padding:10px; border-radius:10px;"></div>
+    <input id="globalMessage" placeholder="Write a message..." style="width: 80%;"><br>
+    <button onclick="postMessage()">Post</button>
+  </div>  <!-- Notification Board -->  <div class="box hidden" id="notificationBoardView">
+    <h2>🔔 Notifications</h2>
+    <p>No notifications yet.</p>
+  </div>  <!-- Search Board -->  <div class="box hidden" id="searchBoardView">
+    <h2>🔍 Search User</h2>
+    <input id="searchInput" placeholder="Enter Username or User ID"><br>
+    <button onclick="searchUser()">Search</button>
+    <div id="searchResult" style="margin-top: 20px; text-align: left;"></div>
+    <hr>
+    <h3>Random Users</h3>
+    <div id="randomUsers" style="text-align: left;"></div>
+  </div>  <!-- Chat Board -->  <div class="box hidden" id="chatBoardView">
+    <h2>💬 Chat</h2>
+    <div id="chatBox" style="background:#111; max-height:200px; overflow-y:auto; padding:10px; border-radius:10px; text-align:left;"></div>
+    <input id="chatMessage" placeholder="Type a message..." style="width: 80%;"><br>
+    <button onclick="sendChat()">Send</button>
+  </div>  <!-- Bottom Menu -->  <div id="bottomMenu">
+    <div onclick="switchToProfile()">👤</div>
+    <div onclick="switchToBoard()">🌐</div>
+    <div onclick="switchToSearch()">🔍</div>
+    <div onclick="switchToNotification()">🔔</div>
+    <div onclick="switchToChat()">💬</div>
+  </div>  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('sideMenu');
+      menu.style.left = menu.style.left === '0px' ? '-60%' : '0px';
+    }
+
+    function getUsers() {
+      return JSON.parse(localStorage.getItem('users')) || [];
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    function generateUserId() {
+      return 'UID' + Math.floor(Math.random() * 1000000);
+    }
+
+    function signup() {
+      const name = sName.value.trim(), username = sUsername.value.trim(),
+            email = sEmail.value.trim(), password = sPassword.value;
+      if (!name || !username || !email || !password) return alert("All fields required!");
+      if (!email.includes('@')) return alert("Invalid email!");
+      let users = getUsers();
+      if (users.some(u => u.email === email)) return alert("Email exists!");
+      const user = { id: generateUserId(), name, username, email, password };
+      users.push(user);
+      saveUsers(users);
+      localStorage.setItem('loggedInUser', JSON.stringify(user));
+      showProfile(user);
+    }
+
+    function signin() {
+      const email = lEmail.value.trim(), password = lPassword.value;
+      const user = getUsers().find(u => u.email === email && u.password === password);
+      if (!user) return alert("Invalid credentials!");
+      localStorage.setItem('loggedInUser', JSON.stringify(user));
+      showProfile(user);
+    }
+
+    function resetPassword() {
+      const id = fUserId.value.trim(), email = fEmail.value.trim(), pass = fNewPassword.value;
+      let users = getUsers();
+      let idx = users.findIndex(u => u.id === id && u.email === email);
+      if (idx === -1) return alert("No match found!");
+      users[idx].password = pass;
+      saveUsers(users);
+      alert("Password updated");
+      showSignin();
+    }
+
+    function showSignup() {
+      hideAll();
+      signupBox.classList.remove('hidden');
+    }
+
+    function showSignin() {
+      hideAll();
+      signinBox.classList.remove('hidden');
+    }
+
+    function showForgot() {
+      hideAll();
+      forgotBox.classList.remove('hidden');
+    }
+
+    function showProfile(user) {
+      hideAll();
+      document.getElementById("bottomMenu").style.display = "flex";
+      switchToProfile();
+      pId.textContent = user.id;
+      pName.textContent = user.name;
+      pUsername.textContent = user.username;
+      pEmail.textContent = user.email;
+      pPassword.textContent = user.password;
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedInUser");
+      location.reload();
+    }
+
+    function hideAll() {
+      document.querySelectorAll(".box").forEach(b => b.classList.add("hidden"));
+      document.getElementById("bottomMenu").style.display = "none";
+      document.getElementById("menuBtn").style.display = "none";
+      document.getElementById("sideMenu").style.left = "-60%";
+    }
+
+    function switchToProfile() {
+      profileView.style.display = "block";
+      globalBoardView.style.display = "none";
+      searchBoardView.style.display = "none";
+      notificationBoardView.style.display = "none";
+      chatBoardView.style.display = "none";
+      document.getElementById("menuBtn").style.display = "block";
+    }
+
+    function switchToBoard() {
+      profileView.style.display = "none";
+      globalBoardView.style.display = "block";
+      searchBoardView.style.display = "none";
+      notificationBoardView.style.display = "none";
+      chatBoardView.style.display = "none";
+      document.getElementById("menuBtn").style.display = "none";
+      loadGlobalBoard();
+    }
+
+    function switchToSearch() {
+      profileView.style.display = "none";
+      globalBoardView.style.display = "none";
+      searchBoardView.style.display = "block";
+      notificationBoardView.style.display = "none";
+      chatBoardView.style.display = "none";
+      document.getElementById("menuBtn").style.display = "none";
+      document.getElementById("searchInput").value = "";
+      document.getElementById("searchResult").innerHTML = "";
+      loadRandomUsers();
+    }
+
+    function switchToNotification() {
+      profileView.style.display = "none";
+      globalBoardView.style.display = "none";
+      searchBoardView.style.display = "none";
+      notificationBoardView.style.display = "block";
+      chatBoardView.style.display = "none";
+      document.getElementById("menuBtn").style.display = "none";
+    }
+
+    function switchToChat() {
+      profileView.style.display = "none";
+      globalBoardView.style.display = "none";
+      searchBoardView.style.display = "none";
+      notificationBoardView.style.display = "none";
+      chatBoardView.style.display = "block";
+      document.getElementById("menuBtn").style.display = "none";
+      loadChat();
+    }
+
+    function loadGlobalBoard() {
+      const board = JSON.parse(localStorage.getItem('globalBoard')) || [];
+      const container = document.getElementById('globalBoard');
+      container.innerHTML = '';
+      board.forEach(entry => {
+        const div = document.createElement('div');
+        div.innerHTML = `<b>${entry.username}</b> <small style="color:gray">(${entry.time})</small><br>${entry.message}`;
+        div.style.marginBottom = "10px";
+        container.appendChild(div);
+      });
+    }
+
+    function postMessage() {
+      const message = globalMessage.value.trim();
+      if (!message) return;
+      const user = JSON.parse(localStorage.getItem("loggedInUser"));
+      const board = JSON.parse(localStorage.getItem("globalBoard")) || [];
+      board.push({ username: user.username, message, time: new Date().toLocaleString() });
+      localStorage.setItem("globalBoard", JSON.stringify(board));
+      globalMessage.value = "";
+      loadGlobalBoard();
+    }
+
+    function sendChat() {
+      const msg = chatMessage.value.trim();
+      if (!msg) return;
+      const user = JSON.parse(localStorage.getItem("loggedInUser"));
+      const chats = JSON.parse(localStorage.getItem("chatMessages")) || [];
+      chats.push({ user: user.username, message: msg, time: new Date().toLocaleTimeString() });
+      localStorage.setItem("chatMessages", JSON.stringify(chats));
+      chatMessage.value = "";
+      loadChat();
+    }
+
+    function loadChat() {
+      const chatBox = document.getElementById("chatBox");
+      const chats = JSON.parse(localStorage.getItem("chatMessages")) || [];
+      chatBox.innerHTML = chats.map(c => `<p><strong>${c.user}</strong> <small style="color:gray">[${c.time}]</small><br>${c.message}</p>`).join('');
+    }
+
+    function searchUser() {
+      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      const users = getUsers();
+      const match = users.find(u => u.username.toLowerCase() === query || u.id.toLowerCase() === query);
+      const resultBox = document.getElementById("searchResult");
+      if (!match) {
+        resultBox.innerHTML = `<p style="color:red;">❌ No user found</p>`;
+      } else {
+        resultBox.innerHTML = `<p><strong>Name:</strong> ${match.name}</p><p><strong>Username:</strong> ${match.username}</p>`;
+      }
+    }
+
+    function loadRandomUsers() {
+      const users = getUsers();
+      const shuffled = users.sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 10);
+      const container = document.getElementById("randomUsers");
+      container.innerHTML = selected.map(u => `<p>👤 <strong>${u.name}</strong> (@${u.username})</p>`).join('');
+    }
+
+    const currentUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (currentUser) showProfile(currentUser);
+  </script></body>
+                                              </html>
