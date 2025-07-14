@@ -1,6 +1,6 @@
 <!DOCTYPE html><html>
 <head>
-  <title>ISO-GRAM</title>
+  <title>ISO - Social Network</title>
   <style>
     body {
       background-color: #121212;
@@ -21,7 +21,7 @@
       box-shadow: 0 0 10px #00ff99;
       margin-bottom: 20px;
     }
-    input, button {
+    input, button, textarea {
       padding: 10px;
       margin: 10px;
       width: 250px;
@@ -35,6 +35,10 @@
     }
     button:hover {
       background-color: #00cc77;
+    }
+    textarea {
+      width: 90%;
+      height: 80px;
     }
     .hidden { display: none; }
     small a {
@@ -81,11 +85,16 @@
       display: none;
     }
     #bottomMenu div {
-      font-size: 24px;
+      font-size: 14px;
       cursor: pointer;
       color: #00ff99;
+      text-align: center;
     }
-    #globalBoardView, #profileView, #searchBoardView, #notificationBoardView, #chatBoardView {
+    #bottomMenu div span {
+      display: block;
+      font-size: 24px;
+    }
+    #profileView, #searchBoardView, #feedBoardView {
       display: none;
     }
     #randomUsers p {
@@ -94,15 +103,16 @@
   </style>
 </head>
 <body>
-  <div id="menuBtn" onclick="toggleMenu()">☰</div>  <div id="sideMenu">
+  <div id="menuBtn" onclick="toggleMenu()">☰</div>
+  <div id="sideMenu">
     <div onclick="toggleMenu()" style="position:absolute; top:20px; right:20px; font-size:22px;">❌</div>
     <div class="menuBox">
       <a onclick="logout()">Logout</a>
       <a onclick="showSignin()">Login with another account</a>
       <a onclick="showSignup()">Signup new account</a>
     </div>
-  </div>  <!-- Signup -->  <div class="box" id="signupBox">
-    <h1>lingova.xyz</h1>
+  </div>  <div class="box" id="signupBox">
+    <h1>ISO</h1>
     <h2>Sign Up</h2>
     <input id="sName" placeholder="Full Name"><br>
     <input id="sUsername" placeholder="Username"><br>
@@ -110,36 +120,33 @@
     <input id="sPassword" type="password" placeholder="Password"><br>
     <button onclick="signup()">Sign Up</button><br>
     <small>Already have an account? <a onclick="showSignin()">Sign In</a></small>
-  </div>  <!-- Signin -->  <div class="box hidden" id="signinBox">
+  </div>  <div class="box hidden" id="signinBox">
     <h2>Sign In</h2>
     <input id="lEmail" type="email" placeholder="Email"><br>
     <input id="lPassword" type="password" placeholder="Password"><br>
     <button onclick="signin()">Sign In</button><br>
     <small>Forgot password? <a onclick="showForgot()">Click here</a></small><br>
     <small>New here? <a onclick="showSignup()">Sign Up</a></small>
-  </div>  <!-- Forgot Password -->  <div class="box hidden" id="forgotBox">
+  </div>  <div class="box hidden" id="forgotBox">
     <h2>Forgot Password</h2>
     <input id="fUserId" placeholder="User ID"><br>
     <input id="fEmail" type="email" placeholder="Email"><br>
     <input id="fNewPassword" type="password" placeholder="New Password"><br>
     <button onclick="resetPassword()">Reset</button><br>
     <small><a onclick="showSignin()">Back to Sign In</a></small>
-  </div>  <!-- Profile View -->  <div class="box hidden" id="profileView">
+  </div>  <div class="box hidden" id="profileView">
     <h2>👤 Profile</h2>
     <p><strong>ID:</strong> <span id="pId"></span></p>
     <p><strong>Name:</strong> <span id="pName"></span></p>
     <p><strong>Username:</strong> <span id="pUsername"></span></p>
     <p><strong>Email:</strong> <span id="pEmail"></span></p>
     <p><strong>Password:</strong> <span id="pPassword"></span></p>
-  </div>  <!-- Global Board -->  <div class="box hidden" id="globalBoardView">
-    <h2>🌐 Global Board</h2>
-    <div id="globalBoard" style="background:#111; max-height:200px; overflow-y:auto; padding:10px; border-radius:10px;"></div>
-    <input id="globalMessage" placeholder="Write a message..." style="width: 80%;"><br>
-    <button onclick="postMessage()">Post</button>
-  </div>  <!-- Notification Board -->  <div class="box hidden" id="notificationBoardView">
-    <h2>🔔 Notifications</h2>
-    <p>No notifications yet.</p>
-  </div>  <!-- Search Board -->  <div class="box hidden" id="searchBoardView">
+  </div>  <div class="box hidden" id="feedBoardView">
+    <h2>🌐 ISO Feed</h2>
+    <textarea id="newPost" placeholder="What's on your mind?"></textarea><br>
+    <button onclick="createPost()">Post</button>
+    <div id="postList" style="text-align: left; margin-top: 20px;"></div>
+  </div>  <div class="box hidden" id="searchBoardView">
     <h2>🔍 Search User</h2>
     <input id="searchInput" placeholder="Enter Username or User ID"><br>
     <button onclick="searchUser()">Search</button>
@@ -147,18 +154,23 @@
     <hr>
     <h3>Random Users</h3>
     <div id="randomUsers" style="text-align: left;"></div>
-  </div>  <!-- Chat Board -->  <div class="box hidden" id="chatBoardView">
-    <h2>💬 Chat</h2>
-    <div id="chatBox" style="background:#111; max-height:200px; overflow-y:auto; padding:10px; border-radius:10px; text-align:left;"></div>
-    <input id="chatMessage" placeholder="Type a message..." style="width: 80%;"><br>
-    <button onclick="sendChat()">Send</button>
-  </div>  <!-- Bottom Menu -->  <div id="bottomMenu">
-    <div onclick="switchToProfile()">👤</div>
-    <div onclick="switchToBoard()">🌐</div>
-    <div onclick="switchToSearch()">🔍</div>
-    <div onclick="switchToNotification()">🔔</div>
-    <div onclick="switchToChat()">💬</div>
+  </div>  <div id="bottomMenu">
+    <div onclick="switchToProfile()">
+      <span>👤</span>Profile
+    </div>
+    <div onclick="switchToBoard()">
+      <span>🌐</span>ISO Feed
+    </div>
+    <div onclick="switchToSearch()">
+      <span>🔍</span>Search
+    </div>
   </div>  <script>
+    const boxes = {
+      profile: document.getElementById("profileView"),
+      feed: document.getElementById("feedBoardView"),
+      search: document.getElementById("searchBoardView")
+    };
+
     function toggleMenu() {
       const menu = document.getElementById('sideMenu');
       menu.style.left = menu.style.left === '0px' ? '-60%' : '0px';
@@ -177,16 +189,15 @@
     }
 
     function signup() {
-      const name = sName.value.trim(), username = sUsername.value.trim(),
-            email = sEmail.value.trim(), password = sPassword.value;
+      const name = sName.value.trim(), username = sUsername.value.trim(), email = sEmail.value.trim(), password = sPassword.value;
       if (!name || !username || !email || !password) return alert("All fields required!");
       if (!email.includes('@')) return alert("Invalid email!");
       let users = getUsers();
-      if (users.some(u => u.email === email)) return alert("Email exists!");
+      if (users.some(u => u.email === email)) return alert("Email already exists!");
       const user = { id: generateUserId(), name, username, email, password };
       users.push(user);
       saveUsers(users);
-      localStorage.setItem('loggedInUser', JSON.stringify(user));
+      localStorage.setItem("loggedInUser", JSON.stringify(user));
       showProfile(user);
     }
 
@@ -194,7 +205,7 @@
       const email = lEmail.value.trim(), password = lPassword.value;
       const user = getUsers().find(u => u.email === email && u.password === password);
       if (!user) return alert("Invalid credentials!");
-      localStorage.setItem('loggedInUser', JSON.stringify(user));
+      localStorage.setItem("loggedInUser", JSON.stringify(user));
       showProfile(user);
     }
 
@@ -211,23 +222,24 @@
 
     function showSignup() {
       hideAll();
-      signupBox.classList.remove('hidden');
+      signupBox.classList.remove("hidden");
     }
 
     function showSignin() {
       hideAll();
-      signinBox.classList.remove('hidden');
+      signinBox.classList.remove("hidden");
     }
 
     function showForgot() {
       hideAll();
-      forgotBox.classList.remove('hidden');
+      forgotBox.classList.remove("hidden");
     }
 
     function showProfile(user) {
       hideAll();
+      boxes.profile.style.display = "block";
       document.getElementById("bottomMenu").style.display = "flex";
-      switchToProfile();
+      document.getElementById("menuBtn").style.display = "block";
       pId.textContent = user.id;
       pName.textContent = user.name;
       pUsername.textContent = user.username;
@@ -245,96 +257,46 @@
       document.getElementById("bottomMenu").style.display = "none";
       document.getElementById("menuBtn").style.display = "none";
       document.getElementById("sideMenu").style.left = "-60%";
+      Object.values(boxes).forEach(box => box.style.display = "none");
     }
 
     function switchToProfile() {
-      profileView.style.display = "block";
-      globalBoardView.style.display = "none";
-      searchBoardView.style.display = "none";
-      notificationBoardView.style.display = "none";
-      chatBoardView.style.display = "none";
+      hideAll();
+      boxes.profile.style.display = "block";
+      document.getElementById("bottomMenu").style.display = "flex";
       document.getElementById("menuBtn").style.display = "block";
     }
 
     function switchToBoard() {
-      profileView.style.display = "none";
-      globalBoardView.style.display = "block";
-      searchBoardView.style.display = "none";
-      notificationBoardView.style.display = "none";
-      chatBoardView.style.display = "none";
-      document.getElementById("menuBtn").style.display = "none";
-      loadGlobalBoard();
+      hideAll();
+      boxes.feed.style.display = "block";
+      document.getElementById("bottomMenu").style.display = "flex";
+      loadFeed();
     }
 
     function switchToSearch() {
-      profileView.style.display = "none";
-      globalBoardView.style.display = "none";
-      searchBoardView.style.display = "block";
-      notificationBoardView.style.display = "none";
-      chatBoardView.style.display = "none";
-      document.getElementById("menuBtn").style.display = "none";
+      hideAll();
+      boxes.search.style.display = "block";
+      document.getElementById("bottomMenu").style.display = "flex";
       document.getElementById("searchInput").value = "";
       document.getElementById("searchResult").innerHTML = "";
       loadRandomUsers();
     }
 
-    function switchToNotification() {
-      profileView.style.display = "none";
-      globalBoardView.style.display = "none";
-      searchBoardView.style.display = "none";
-      notificationBoardView.style.display = "block";
-      chatBoardView.style.display = "none";
-      document.getElementById("menuBtn").style.display = "none";
-    }
-
-    function switchToChat() {
-      profileView.style.display = "none";
-      globalBoardView.style.display = "none";
-      searchBoardView.style.display = "none";
-      notificationBoardView.style.display = "none";
-      chatBoardView.style.display = "block";
-      document.getElementById("menuBtn").style.display = "none";
-      loadChat();
-    }
-
-    function loadGlobalBoard() {
-      const board = JSON.parse(localStorage.getItem('globalBoard')) || [];
-      const container = document.getElementById('globalBoard');
-      container.innerHTML = '';
-      board.forEach(entry => {
-        const div = document.createElement('div');
-        div.innerHTML = `<b>${entry.username}</b> <small style="color:gray">(${entry.time})</small><br>${entry.message}`;
-        div.style.marginBottom = "10px";
-        container.appendChild(div);
-      });
-    }
-
-    function postMessage() {
-      const message = globalMessage.value.trim();
-      if (!message) return;
+    function createPost() {
+      const content = document.getElementById("newPost").value.trim();
+      if (!content) return;
       const user = JSON.parse(localStorage.getItem("loggedInUser"));
-      const board = JSON.parse(localStorage.getItem("globalBoard")) || [];
-      board.push({ username: user.username, message, time: new Date().toLocaleString() });
-      localStorage.setItem("globalBoard", JSON.stringify(board));
-      globalMessage.value = "";
-      loadGlobalBoard();
+      const posts = JSON.parse(localStorage.getItem("feedPosts")) || [];
+      posts.unshift({ user: user.username, content, time: new Date().toLocaleString() });
+      localStorage.setItem("feedPosts", JSON.stringify(posts));
+      document.getElementById("newPost").value = "";
+      loadFeed();
     }
 
-    function sendChat() {
-      const msg = chatMessage.value.trim();
-      if (!msg) return;
-      const user = JSON.parse(localStorage.getItem("loggedInUser"));
-      const chats = JSON.parse(localStorage.getItem("chatMessages")) || [];
-      chats.push({ user: user.username, message: msg, time: new Date().toLocaleTimeString() });
-      localStorage.setItem("chatMessages", JSON.stringify(chats));
-      chatMessage.value = "";
-      loadChat();
-    }
-
-    function loadChat() {
-      const chatBox = document.getElementById("chatBox");
-      const chats = JSON.parse(localStorage.getItem("chatMessages")) || [];
-      chatBox.innerHTML = chats.map(c => `<p><strong>${c.user}</strong> <small style="color:gray">[${c.time}]</small><br>${c.message}</p>`).join('');
+    function loadFeed() {
+      const posts = JSON.parse(localStorage.getItem("feedPosts")) || [];
+      document.getElementById("postList").innerHTML = posts.map(p => `<p><strong>@${p.user}</strong><br>${p.content}<br><small style='color:gray;'>${p.time}</small></p><hr>`).join('');
     }
 
     function searchUser() {
@@ -360,4 +322,4 @@
     const currentUser = JSON.parse(localStorage.getItem("loggedInUser"));
     if (currentUser) showProfile(currentUser);
   </script></body>
-                                              </html>
+      </html>
